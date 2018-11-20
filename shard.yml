@@ -1,0 +1,13 @@
+name: bismuth
+version: 0.1.0
+
+authors:
+  - Scott Olsen <scg.olsen@gmail.com>
+
+targets:
+  bismuth:
+    main: src/bismuth.cr
+
+crystal: 0.27.0
+
+license: MIT
