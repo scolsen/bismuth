@@ -13,7 +13,8 @@ module Bismuth
     loop do
       @@command = Readline.readline("bismuth> ")
       break if @@command.nil?
-      puts @@command
+     
+      Process.run(@@command.as(String), nil, nil, false, false, STDIN, STDOUT, STDERR) 
     end
   end
 end
