@@ -5,30 +5,22 @@ require "./bismuth/**"
 
 module Bismuth
   VERSION = "0.1.0"
+  include Bismuth::Line
   include Bismuth::Builtins 
   include Bismuth::Dispatch
   extend self
   
-  @@command  : String | Nil 
+  @@line  : String | Nil 
   @@parsed   : Array(String)
   
   @@parsed  = [] of String
   
   def start
     loop do
-      @@command = Readline.readline("bismuth> ", true)
-      break if @@command.nil?
+      @@line = Readline.readline("bismuth> ", true)
+      break if @@line.nil?
      
-      @@command.as(String).split(" ") { |s| @@parsed << s }
-     
-      case @@command.as(String)
-      when .starts_with?("cd")  then cd(@@parsed[1])
-      when .starts_with?("pwd") then pwd
-      when .starts_with?("exit") then ex
-      else run(@@command.as(String)) 
-      end
-    
-      @@parsed.clear
+      dispatch(commands(@@line.as(String)))
     end
   end
 end
