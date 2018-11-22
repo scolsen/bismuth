@@ -31,14 +31,22 @@ module Bismuth::Dispatch
   def nshot(commands : Commands)
     first = commands.shift 
     last  = commands.pop    
+    reader, writer = IO.pipe
+    prev = reader
 
-    Process.run(first[0], first[1]) do | x |
-      prev = x.output
+    Process.run(first[0], first[1], input: STDIN, output: writer) 
+    writer.close 
+    
+    unless commands.empty?
       commands.each do | cmd |
-        prev = Process.run(cmd[0], cmd[1], nil, false, false, prev, Process::Redirect::Pipe) { | x | x.output }
+        r, w = IO.pipe
+        Process.run(cmd[0], cmd[1], input: prev, output: w)
+        w.close
+        prev = r
       end
-      Process.run(last[0], last[1], nil, false, false, prev, STDOUT)
     end
+
+    Process.run(last[0], last[1], input: prev, output: STDOUT)
   end
   
   def builtin?(command : Command)
