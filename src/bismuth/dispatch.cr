@@ -1,5 +1,6 @@
 require "./types"
 require "./builtins"
+require "./pipeline"
 
 module Bismuth::Dispatch 
   include Bismuth::Types 
@@ -32,21 +33,18 @@ module Bismuth::Dispatch
     first = commands.shift 
     last  = commands.pop    
     reader, writer = IO.pipe
-    prev = reader
 
     Process.run(first[0], first[1], input: STDIN, output: writer) 
     writer.close 
     
     unless commands.empty?
-      commands.each do | cmd |
-        r, w = IO.pipe
-        Process.run(cmd[0], cmd[1], input: prev, output: w)
-        w.close
-        prev = r
-      end
+      pipeline = Bismuth::Pipeline::Pipeline.new(reader, commands)
+      pipeline.run
+      Process.run(last[0], last[1], input: pipeline.endpoint, output: STDOUT)
+    else
+      Process.run(last[0], last[1], input: reader, output: STDOUT)
     end
 
-    Process.run(last[0], last[1], input: prev, output: STDOUT)
   end
   
   def builtin?(command : Command)
